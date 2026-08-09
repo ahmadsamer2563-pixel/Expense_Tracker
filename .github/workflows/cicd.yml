@@ -28,3 +28,20 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t expense-tracker-backend -f backend/Dockerfile .
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VM
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd ~/Desktop/Project2/Expense_Tracker
+            git pull origin main
+            docker compose up --build -d
